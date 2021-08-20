@@ -44,3 +44,21 @@ class ActorCriticPolicy(nn.Module):
     def forward(self, x):
         x = self.common(x)
         return self.critic(x), self.actor(x)
+
+
+class ActorPolicy(nn.Module):
+
+    def __init__(self, observation_space: gym.spaces.Box, action_space: gym.spaces.Discrete):
+        super().__init__()
+
+        self.fc = nn.Sequential(
+            nn.Linear(observation_space.shape[0], 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, action_space.n)  # logits
+        )
+
+    def forward(self, x):
+        x = self.fc(x)
+        return x
