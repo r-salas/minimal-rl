@@ -8,6 +8,7 @@ torch = "*"
 gym = "*"
 typer = "*"
 numpy = "*"
+box2d = "*"
 
 [dev-packages]
 
