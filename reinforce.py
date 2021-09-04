@@ -7,31 +7,37 @@
 import gym
 import typer
 import torch
-import numpy as np
 import torch.optim as optim
 
-from common.stats import Stats
-from common.policies import ActorPolicy
-from common.utils import discount_rewards, normalize
+from common.logger import Logger
+from common.policies import ActorDiscretePolicy
+from common.utils import discount_rewards, normalize, seed_everything, play
 
 from torch.distributions.categorical import Categorical
 
+from common.wrappers import DiscretePendulum
 
-def reinforce(env_id="CartPole-v1", max_timesteps: int = 100_000, discount_rate: float = 0.9,
-              log_frequency: int = 1_000, device: str = "auto"):
+
+def reinforce(env_id="CartPole-v1", max_timesteps: int = 150_000, discount_rate: float = 0.99,
+              learning_rate: float = 1e-3, log_frequency: int = 1_000, device: str = "auto", seed: int = 0,
+              test: bool = True):
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def t(x):
-        return torch.as_tensor(x, device=torch.device(device))
+        return torch.as_tensor(x, dtype=torch.float32, device=torch.device(device))
 
     env = gym.make(env_id)
 
-    policy = ActorPolicy(env.observation_space, env.action_space)
+    if env_id == "Pendulum-v0":
+        env = DiscretePendulum(env)
 
-    optimizer = optim.Adam(policy.parameters())
+    env.seed(seed)
+    seed_everything(seed)
 
-    stats = Stats(log_frequency)
+    policy = ActorDiscretePolicy(env.observation_space, env.action_space)
+
+    optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
 
     logger = Logger(log_frequency)
 
@@ -42,7 +48,7 @@ def reinforce(env_id="CartPole-v1", max_timesteps: int = 100_000, discount_rate:
     ep_log_prob_actions = []
 
     while timestep < max_timesteps:
-        action_logits = policy(t(obs).float())
+        action_logits = policy(t(obs))
         action_dist = Categorical(logits=action_logits)
 
         action = action_dist.sample()
@@ -73,6 +79,14 @@ def reinforce(env_id="CartPole-v1", max_timesteps: int = 100_000, discount_rate:
             ep_log_prob_actions.clear()
 
             logger.log_metric("loss", loss.item())
+
+    if test:
+        policy.eval()
+
+        def predict(obs):
+            return torch.argmax(policy(t(obs))).cpu().numpy()
+
+        play(env, predict)
 
 
 if __name__ == "__main__":
