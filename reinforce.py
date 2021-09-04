@@ -33,6 +33,8 @@ def reinforce(env_id="CartPole-v1", max_timesteps: int = 100_000, discount_rate:
 
     stats = Stats(log_frequency)
 
+    logger = Logger(log_frequency)
+
     timestep = 0
     obs = env.reset()
 
@@ -50,12 +52,12 @@ def reinforce(env_id="CartPole-v1", max_timesteps: int = 100_000, discount_rate:
         ep_rewards.append(reward)
         ep_log_prob_actions.append(action_dist.log_prob(action))
 
-        stats.step(reward, done)
+        logger.log_step(reward, done)
 
         timestep += 1
 
         if done:
-            discounted_rewards = normalize(discount_rewards(ep_rewards, discount_rate))
+            discounted_rewards = normalize(discount_rewards(ep_rewards, discount_rate=discount_rate))
 
             loss = -torch.sum(t(discounted_rewards) * torch.stack(ep_log_prob_actions))  # negative: gradient ascent
 
@@ -70,7 +72,7 @@ def reinforce(env_id="CartPole-v1", max_timesteps: int = 100_000, discount_rate:
             ep_rewards.clear()
             ep_log_prob_actions.clear()
 
-            stats.log("loss", loss.item())
+            logger.log_metric("loss", loss.item())
 
 
 if __name__ == "__main__":

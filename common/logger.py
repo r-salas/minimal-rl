@@ -7,31 +7,39 @@
 import time
 import numpy as np
 
+from typing import Dict
 from collections import defaultdict
 
 
-class Stats:
+class Logger:
 
-    def __init__(self, log_frequency: int = 100):
+    def __init__(self, log_frequency: int = 100, num_envs: int = 1):
+        self.num_envs = num_envs
         self.log_frequency = log_frequency
 
         self._episode = 0
         self._timestep = 0
-        self._ep_rewards = []
+        self._ep_steps = np.zeros(num_envs, dtype=int)
+        self._ep_rewards = np.zeros(num_envs, dtype=float)
         self._start_time = time.time()
         self._metrics = defaultdict(list)
 
-    def step(self, reward, done):
+    def log_step(self, reward, done):
         self._timestep += 1
 
-        self._ep_rewards.append(reward)
+        self._ep_steps += 1
+        self._ep_rewards += reward
 
-        if done:
-            self._metrics["episode/length"].append(len(self._ep_rewards))
-            self._metrics["episode/reward"].append(np.sum(self._ep_rewards))
+        done_envs = np.flatnonzero(done)
+
+        for env_idx in done_envs:
+            self._metrics["episode/length"].append(self._ep_steps[env_idx])
+            self._metrics["episode/reward"].append(self._ep_rewards[env_idx])
 
             self._episode += 1
-            self._ep_rewards.clear()
+
+        self._ep_rewards[done_envs] = 0
+        self._ep_steps[done_envs] = 0
 
         if (self._timestep % self.log_frequency) == 0:
             print(f"time/timestep: {self._timestep}")
@@ -45,5 +53,5 @@ class Stats:
 
             print("*" * 20)
 
-    def log(self, name, value):
+    def log_metric(self, name: str, value: float):
         self._metrics[name].append(value)

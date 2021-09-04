@@ -44,6 +44,8 @@ def dqn(env_id="CartPole-v1", max_timesteps: int = 200_000, discount_rate: float
 
     stats = Stats(log_frequency=log_frequency)
 
+    logger = Logger(log_frequency=log_frequency)
+
     timestep = 0
     obs = env.reset()
 
@@ -60,7 +62,7 @@ def dqn(env_id="CartPole-v1", max_timesteps: int = 200_000, discount_rate: float
 
         timestep += 1
 
-        stats.step(reward, done)
+        logger.log_step(reward, done)
 
         if done:
             obs = env.reset()
@@ -89,7 +91,8 @@ def dqn(env_id="CartPole-v1", max_timesteps: int = 200_000, discount_rate: float
 
             optimizer.step()
 
-            stats.log("train/loss", loss.item())
+            logger.log_metric("train/loss", loss.item())
+            logger.log_metric("train/epsilon", exploration.epsilon)
 
         if (timestep % target_update_frequency) == 0:
             target_policy.load_state_dict(online_policy.state_dict())
