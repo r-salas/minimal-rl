@@ -1,0 +1,5 @@
+numpy
+torch
+typer
+box2d
+gym>=0.15.3

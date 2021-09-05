@@ -5,10 +5,10 @@ name = "pypi"
 
 [packages]
 torch = "*"
-gym = "*"
 typer = "*"
 numpy = "*"
 box2d = "*"
+gym = ">=0.15.3"
 
 [dev-packages]
 
