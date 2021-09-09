@@ -10,7 +10,7 @@ $ pip install -r requirements.txt
 
 If you're in Linux, you may also need to install `swig`:
 ```console
-apt-get install swig
+$ apt-get install swig
 ```
 
 ## DQN
