@@ -15,8 +15,6 @@ from common.utils import discount_rewards, normalize, seed_everything, play
 
 from torch.distributions.categorical import Categorical
 
-from common.wrappers import DiscretePendulum
-
 
 def reinforce(env_id="CartPole-v1", max_timesteps: int = 150_000, discount_rate: float = 0.99,
               learning_rate: float = 1e-3, log_frequency: int = 1_000, device: str = "auto", seed: int = 0,
@@ -28,9 +26,6 @@ def reinforce(env_id="CartPole-v1", max_timesteps: int = 150_000, discount_rate:
         return torch.as_tensor(x, dtype=torch.float32, device=torch.device(device))
 
     env = gym.make(env_id)
-
-    if env_id == "Pendulum-v0":
-        env = DiscretePendulum(env)
 
     env.seed(seed)
     seed_everything(seed)

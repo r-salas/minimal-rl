@@ -15,7 +15,6 @@ import torch.nn.functional as F
 from collections import deque
 
 from common.logger import Logger
-from common.wrappers import DiscretePendulum
 from common.utils import seed_everything, play
 from common.policies import QNetworkDiscretePolicy
 
@@ -31,9 +30,6 @@ def dqn(env_id="LunarLander-v2", max_timesteps: int = 250_000, discount_rate: fl
         return torch.as_tensor(x, dtype=torch.float32, device=torch.device(device))
 
     env = gym.make(env_id)
-
-    if env_id == "Pendulum-v0":
-        env = DiscretePendulum(env)
 
     env.seed(seed)
     seed_everything(seed)
